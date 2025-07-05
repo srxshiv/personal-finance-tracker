@@ -10,12 +10,31 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Transaction, TransactionFormData } from '@/types/transaction';
 import { transactionAPI, EXPENSE_CATEGORIES } from '@/lib/transactions';
 import { PlusCircle, Edit3, Loader2 } from 'lucide-react';
+import { z } from 'zod';
 
 interface TransactionFormProps {
   transaction?: Transaction | null;
   onSave: (transaction: Transaction) => void;
   onCancel: () => void;
 }
+
+const transactionSchema = z.object({
+  amount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+    message: 'Amount must be a positive number',
+  }),
+  date: z.string().min(1, 'Date is required'),
+  description: z.string().min(1, 'Description is required'),
+  type: z.enum(['income', 'expense']),
+  category: z.string().optional(),
+}).refine((data) => {
+  if (data.type === 'expense' && !data.category) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'Category is required for expenses',
+  path: ['category'],
+});
 
 export default function TransactionForm({ transaction, onSave, onCancel }: TransactionFormProps) {
   const [formData, setFormData] = useState<TransactionFormData>({
@@ -25,7 +44,7 @@ export default function TransactionForm({ transaction, onSave, onCancel }: Trans
     type: 'expense',
     category: '',
   });
-  const [errors, setErrors] = useState<Partial<TransactionFormData>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -47,36 +66,22 @@ export default function TransactionForm({ transaction, onSave, onCancel }: Trans
     }
   }, [transaction]);
 
-  const validateForm = (): boolean => {
-    const newErrors: Partial<TransactionFormData> = {};
-
-    if (!formData.amount || isNaN(parseFloat(formData.amount)) || parseFloat(formData.amount) <= 0) {
-      newErrors.amount = 'Amount must be a positive number';
-    }
-
-    if (!formData.date) {
-      newErrors.date = 'Date is required';
-    }
-
-    if (!formData.description.trim()) {
-      newErrors.description = 'Description is required';
-    }
-
-    if (formData.type === 'expense' && !formData.category) {
-      newErrors.category = 'Category is required for expenses';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) return;
+
+    const parsed = transactionSchema.safeParse(formData);
+    if (!parsed.success) {
+      const fieldErrors: Record<string, string> = {};
+      parsed.error.errors.forEach((err) => {
+        const field = err.path[0] as string;
+        fieldErrors[field] = err.message;
+      });
+      setErrors(fieldErrors);
+      return;
+    }
 
     setIsSubmitting(true);
-    
+
     try {
       const transactionData = {
         amount: parseFloat(formData.amount),
@@ -87,7 +92,7 @@ export default function TransactionForm({ transaction, onSave, onCancel }: Trans
       };
 
       let savedTransaction: Transaction;
-      
+
       if (transaction) {
         savedTransaction = await transactionAPI.update(transaction._id, transactionData);
       } else {
@@ -95,7 +100,7 @@ export default function TransactionForm({ transaction, onSave, onCancel }: Trans
       }
 
       onSave(savedTransaction);
-      
+
       if (!transaction) {
         setFormData({
           amount: '',
@@ -115,7 +120,11 @@ export default function TransactionForm({ transaction, onSave, onCancel }: Trans
   const handleInputChange = (field: keyof TransactionFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
     }
   };
 
