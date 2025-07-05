@@ -38,12 +38,6 @@ export async function PUT(
     return NextResponse.json(updatedBudget);
   } catch (error) {
     console.error('Error updating budget:', error);
-    if (error.code === 11000) {
-      return NextResponse.json(
-        { error: 'Budget already exists for this category and month' },
-        { status: 409 }
-      );
-    }
     return NextResponse.json(
       { error: 'Failed to update budget' },
       { status: 500 }
@@ -51,7 +45,7 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
+export async function DELETE( request: NextRequest ,
   { params }: { params: { id: string } }
 ) {
   try {

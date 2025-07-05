@@ -13,7 +13,7 @@ import { EXPENSE_CATEGORIES } from '@/lib/transactions';
 import { Edit3, Loader2, Target } from 'lucide-react';
 
 interface BudgetFormProps {
-  budget?: Budget;
+  budget?: Budget | null;
   onSave: (budget: Budget) => void;
   onCancel: () => void;
   existingCategories?: string[];

@@ -36,12 +36,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(savedBudget, { status: 201 });
   } catch (error) {
     console.error('Error creating budget:', error);
-    if (error.code === 11000) {
-      return NextResponse.json(
-        { error: 'Budget already exists for this category and month' },
-        { status: 409 }
-      );
-    }
     return NextResponse.json(
       { error: 'Failed to create budget' },
       { status: 500 }
