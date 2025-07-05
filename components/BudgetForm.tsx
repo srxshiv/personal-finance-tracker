@@ -103,7 +103,7 @@ export default function BudgetForm({ budget, onSave, onCancel, existingCategorie
   );
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md ">
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2">
           {budget ? (
@@ -139,7 +139,7 @@ export default function BudgetForm({ budget, onSave, onCancel, existingCategorie
               <SelectTrigger className={errors.category ? 'border-red-500' : ''}>
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className='bg-white'>
                 {availableCategories.map((category) => (
                   <SelectItem key={category} value={category}>
                     {category}

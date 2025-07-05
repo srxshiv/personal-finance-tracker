@@ -162,7 +162,7 @@ export default function TransactionForm({ transaction, onSave, onCancel }: Trans
               <SelectTrigger>
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className='bg-white'>
                 <SelectItem value="expense">Expense</SelectItem>
                 <SelectItem value="income">Income</SelectItem>
               </SelectContent>
@@ -176,7 +176,7 @@ export default function TransactionForm({ transaction, onSave, onCancel }: Trans
                 <SelectTrigger className={errors.category ? 'border-red-500' : ''}>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className='bg-white'>
                   {EXPENSE_CATEGORIES.map((category) => (
                     <SelectItem key={category} value={category}>
                       {category}
